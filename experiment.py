@@ -35,6 +35,7 @@ class Experiment(nauka.exp.Experiment):
 		"""
 		Reinitialize from scratch.
 		"""
+		pass
 		
 		"""Reseed PRNGs for initialization step"""
 		self.reseed(password="Seed: {} Init".format(self.a.seed))
@@ -46,8 +47,9 @@ class Experiment(nauka.exp.Experiment):
 		
 		"""Model Instantiation"""
 		self.S.model = None
-		if   self.a.model == "bnn": self.S.model = MatthieuBNN(self.a)
-		if   self.S.model is None:
+		if   self.a.model == "bnn":  self.S.model = ModelBNN (self.a)
+		elif self.a.model == "real": self.S.model = ModelReal(self.a)
+		else:
 			raise ValueError("Unsupported dataset-model pair \"{:s}\"-\"{:s}\"!"
 			                 .format(self.a.dataset, self.a.model))
 		if self.a.cuda: self.S.model = self.S.model.cuda(self.a.cuda[0])
@@ -135,15 +137,7 @@ class Experiment(nauka.exp.Experiment):
 		loss = self.S.model.loss(Ypred, Y)
 		loss.backward()
 		self.S.optimizer.step()
-		
-		"""
-		This model requires the enforcement of constraints, which we do here
-		with the PyTorch method Module.apply().
-		"""
-		def reconstrain(module):
-			if hasattr(module, "reconstrain"):
-				module.reconstrain()
-		self.S.model.apply(reconstrain)
+		self.S.model.constrain()
 		
 		with torch.no_grad():
 			self.recordTrainBatchStats(X, Ypred, Y, loss)
