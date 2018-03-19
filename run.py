@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pickle as pkl, pdb, nauka, os, sys, uuid
 
@@ -16,13 +16,6 @@ class root(nauka.utils.Subcommand):
 			mtxp.add_argument("-b", "--baseDir",        action=nauka.utils.BaseDirPathAction)
 			argp.add_argument("-d", "--dataDir",        action=nauka.utils.DataDirPathAction)
 			argp.add_argument("-t", "--tmpDir",         action=nauka.utils.TmpDirPathAction)
-			argp.add_argument("--summary",              action="store_true",
-			    help="Print a summary of the network.")
-			argp.add_argument("--fastdebug",            action="store_true",
-			    help="For debug purposes, run very few iterations per epoch, thus exercising "
-			         "all of the code quickly.")
-			argp.add_argument("--pdb",                  action="store_true",
-			    help="""Breakpoint before run start.""")
 			argp.add_argument("-n", "--name",           action="append",            type=str,
 			    help="Build a name for the experiment.")
 			argp.add_argument("-s", "--seed",           default=0x6a09e667f3bcc908, type=int,
@@ -44,7 +37,7 @@ class root(nauka.utils.Subcommand):
 			    choices={"fig1":  ["--name=fig1", "--opt=adam", "--bs=100"],
 			             "fig2":  ["--name=fig2", "--opt=sgd",  "--bs=25"],},
 			    help="Experiment presets for commonly-used settings.")
-			optp = argp.add_argument_group("Optimizers", "Tunables for all optimizers")
+			optp = argp.add_argument_group("Optimizers", "Tunables for all optimizers.")
 			optp.add_argument("--optimizer", "--opt",   action=nauka.utils.OptimizerAction,
 			    default="adam",
 			    help="Optimizer selection.")
@@ -58,6 +51,17 @@ class root(nauka.utils.Subcommand):
 			    help="L2 penalty.")
 			optp.add_argument("--decay",                default=0,                  type=float,
 			    help="Learning rate decay for optimizers.")
+			dbgp = argp.add_argument_group("Debugging", "Flags for debugging purposes.")
+			dbgp.add_argument("--dbgsummary",           action="store_true",
+			    help="Print a summary of the network.")
+			dbgp.add_argument("--dbgfast",              default=0,                  type=int,
+			    nargs="?", metavar="N",                 const=5,
+			    help="For debug purposes, run only a tiny number of train & validation "
+			         "iterations per epoch, thus exercising all of the code quickly. "
+			         "Default is 5 iterations.")
+			dbgp.add_argument("--pdb",                  action="store_true",
+			    help="""Breakpoint before run start.""")
+		
 		
 		@classmethod
 		def run(kls, a):

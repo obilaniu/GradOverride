@@ -48,10 +48,10 @@ class Experiment(nauka.exp.Experiment):
 		self.S.model = None
 		if   self.a.model == "bnn": self.S.model = MatthieuBNN(self.a)
 		if   self.S.model is None:
-			raise ValueError("Unsupported dataset-model pair \""+self.a.dataset+"-"+self.a.model+"\"!")
-		if self.a.cuda:
-			self.S.model = self.S.model.cuda()
-		
+			raise ValueError("Unsupported dataset-model pair \"{:s}\"-\"{:s}\"!"
+			                 .format(self.a.dataset, self.a.model))
+		if self.a.cuda: self.S.model = self.S.model.cuda(self.a.cuda[0])
+		else:           self.S.model = self.S.model.cpu ()
 		
 		"""Optimizer Selection"""
 		self.S.optimizer = nauka.utils.getTorchOptimizerFromAction(self.S.model.parameters(),
@@ -77,7 +77,7 @@ class Experiment(nauka.exp.Experiment):
 			self.readyDataset(download=False)
 			while not self.isDone:
 				self.interval().snapshot().purge()
-		return self.exitcode
+		return self
 	
 	def interval(self):
 		"""
@@ -103,6 +103,7 @@ class Experiment(nauka.exp.Experiment):
 			self.S.model.train()
 			self.onTrainLoopBegin()
 			for i, D in enumerate(self.DloaderTrain):
+				if self.a.dbgfast and i>=self.a.dbgfast: break
 				if i>0: self.S.z.step()
 				self.onTrainBatch(D, i)
 			self.onTrainLoopEnd()
@@ -111,6 +112,7 @@ class Experiment(nauka.exp.Experiment):
 			self.S.model.eval()
 			self.onValidLoopBegin()
 			for i, D in enumerate(self.DloaderValid):
+				if self.a.dbgfast and i>=self.a.dbgfast: break
 				self.onValidBatch(D, i)
 			self.onValidLoopEnd()
 		
@@ -122,15 +124,22 @@ class Experiment(nauka.exp.Experiment):
 	
 	def onTrainBatch(self, D, i):
 		X, Y = D
-		if self.a.cuda:
-			X, Y = X.cuda(), Y.cuda()
 		
 		self.S.optimizer.zero_grad()
-		Ypred = data_parallel(self.S.model, X, self.a.cuda)
-		loss  = self.S.model.loss(Ypred, Y)
+		if self.a.cuda:
+			Y, X  = Y.cuda(), X.cuda()
+			Ypred = data_parallel(self.S.model, X, self.a.cuda)
+		else:
+			Y, X  = Y.cpu(),  X.cpu()
+			Ypred = self.S.model(X)
+		loss = self.S.model.loss(Ypred, Y)
 		loss.backward()
 		self.S.optimizer.step()
 		
+		"""
+		This model requires the enforcement of constraints, which we do here
+		with the PyTorch method Module.apply().
+		"""
 		def reconstrain(module):
 			if hasattr(module, "reconstrain"):
 				module.reconstrain()
@@ -143,12 +152,15 @@ class Experiment(nauka.exp.Experiment):
 	
 	def onValidBatch(self, D, i):
 		X, Y = D
-		if self.a.cuda:
-			X, Y = X.cuda(), Y.cuda()
 		
 		with torch.no_grad():
-			Ypred = data_parallel(self.S.model, X, self.a.cuda)
-			loss  = self.S.model.loss(Ypred, Y)
+			if self.a.cuda:
+				Y, X  = Y.cuda(), X.cuda()
+				Ypred = data_parallel(self.S.model, X, self.a.cuda)
+			else:
+				Y, X  = Y.cpu(),  X.cpu()
+				Ypred = self.S.model(X)
+			loss = self.S.model.loss(Ypred, Y)
 		
 		with torch.no_grad():
 			self.recordValidBatchStats(X, Ypred, Y, loss)
