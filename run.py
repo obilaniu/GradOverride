@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# PYTHON_ARGCOMPLETE_OK
 import pickle as pkl, pdb, nauka, os, sys, uuid
 
 
@@ -84,7 +85,10 @@ class root(nauka.utils.Subcommand):
 
 
 def main(argv):
-	a = root.addAllArgs().parse_args(argv[1:])
+	argp = root.addAllArgs()
+	try:    import argcomplete; argcomplete.autocomplete(argp)
+	except: pass
+	a = argp.parse_args(argv[1:])
 	a.__argv__ = argv
 	return a.__kls__.run(a)
 
