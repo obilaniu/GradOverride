@@ -27,7 +27,7 @@ class Experiment(nauka.exp.Experiment):
 		self.a = type(a)(**a.__dict__)
 		self.a.__dict__.pop("__argp__", None)
 		self.a.__dict__.pop("__argv__", None)
-		self.a.__dict__.pop("__kls__",  None)
+		self.a.__dict__.pop("__cls__",  None)
 		super().__init__(os.path.join(self.a.workDir, self.name))
 		self.mkdirp(self.logDir)
 	
@@ -105,7 +105,7 @@ class Experiment(nauka.exp.Experiment):
 			self.S.model.train()
 			self.onTrainLoopBegin()
 			for i, D in enumerate(self.DloaderTrain):
-				if self.a.dbgfast and i>=self.a.dbgfast: break
+				if self.a.fastdebug and i>=self.a.fastdebug: break
 				if i>0: self.S.z.step()
 				self.onTrainBatch(D, i)
 			self.onTrainLoopEnd()
@@ -114,7 +114,7 @@ class Experiment(nauka.exp.Experiment):
 			self.S.model.eval()
 			self.onValidLoopBegin()
 			for i, D in enumerate(self.DloaderValid):
-				if self.a.dbgfast and i>=self.a.dbgfast: break
+				if self.a.fastdebug and i>=self.a.fastdebug: break
 				self.onValidBatch(D, i)
 			self.onValidLoopEnd()
 		
@@ -345,7 +345,8 @@ class Experiment(nauka.exp.Experiment):
 		return os.path.join(self.workDir, "logs")
 	@property
 	def isDone(self):
-		return self.S.epochNum >= self.a.num_epochs
+		return (self.S.epochNum >= self.a.num_epochs or
+		       (self.a.fastdebug and self.S.epochNum >= self.a.fastdebug))
 	@property
 	def exitcode(self):
 		return 0 if self.isDone else 1
