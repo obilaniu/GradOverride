@@ -25,3 +25,20 @@ class BNNSign(torch.autograd.Function):
 
 bnn_sign = BNNSign.apply
 
+
+class BNNSignPass(torch.autograd.Function):
+	"""
+	BinaryNet q = Sign(r) with gradient override.
+	Same as BNNSign except that gradient is passed through unchanged.
+	"""
+	
+	@staticmethod
+	def forward(ctx, x):
+		return x.sign()
+	
+	@staticmethod
+	def backward(ctx, dx):
+		return dx
+
+bnn_sign_pass = BNNSignPass.apply
+

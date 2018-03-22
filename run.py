@@ -34,6 +34,9 @@ class root(nauka.ap.Subcommand):
 			    help="Number of epochs")
 			argp.add_argument("--batch-size", "--bs",   default=50,           type=int,
 			    help="Batch Size")
+			argp.add_argument("--override",             default="matt",       type=str,
+			    choices=["matt", "pass"],
+			    help="Gradient override selection.")
 			argp.add_argument("--cuda",                 action=nauka.ap.CudaDevice)
 			argp.add_argument("-p", "--preset",         action=nauka.ap.Preset,
 			    choices={"fig1":  ["-n=fig1", "--opt=adam", "--bs=100"],

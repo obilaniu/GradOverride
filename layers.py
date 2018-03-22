@@ -25,7 +25,8 @@ class Conv2dBNN(torch.nn.Conv2d):
 	                   groups       = 1,
 	                   bias         = True,
 	                   H            = 1.0,
-	                   W_LR_scale   = "Glorot"):
+	                   W_LR_scale   = "Glorot",
+	                   override     = "matt"):
 		#
 		# Fan-in/fan-out computation
 		#
@@ -45,6 +46,8 @@ class Conv2dBNN(torch.nn.Conv2d):
 		else:
 			self.W_LR_scale = self.H
 		
+		self.override = override
+		
 		super().__init__(in_channels, out_channels, kernel_size,
 		                 stride, padding, dilation, groups, bias)
 		self.reset_parameters()
@@ -58,7 +61,10 @@ class Conv2dBNN(torch.nn.Conv2d):
 		self.weight.data.clamp_(-self.H, +self.H)
 	
 	def forward(self, x):
-		Wb = bnn_sign(self.weight/self.H)*self.H
+		if   self.override == "matt":
+			Wb = bnn_sign(self.weight/self.H)*self.H
+		elif self.override == "pass":
+			Wb = bnn_sign_pass(self.weight/self.H)*self.H
 		return TNF.conv2d(x, Wb, self.bias, self.stride, self.padding,
 		                  self.dilation, self.groups)
 
@@ -77,7 +83,8 @@ class LinearBNN(torch.nn.Linear):
 	                   out_channels,
 	                   bias         = True,
 	                   H            = 1.0,
-	                   W_LR_scale   = "Glorot"):
+	                   W_LR_scale   = "Glorot",
+	                   override     = "matt"):
 		#
 		# Fan-in/fan-out computation
 		#
@@ -94,6 +101,8 @@ class LinearBNN(torch.nn.Linear):
 		else:
 			self.W_LR_scale = self.H
 		
+		self.override = override
+		
 		super().__init__(in_channels, out_channels, bias)
 		self.reset_parameters()
 	
@@ -106,7 +115,10 @@ class LinearBNN(torch.nn.Linear):
 		self.weight.data.clamp_(-self.H, +self.H)
 	
 	def forward(self, input):
-		Wb = bnn_sign(self.weight/self.H)*self.H
+		if   self.override == "matt":
+			Wb = bnn_sign(self.weight/self.H)*self.H
+		elif self.override == "pass":
+			Wb = bnn_sign_pass(self.weight/self.H)*self.H
 		return TNF.linear(input, Wb, self.bias)
 
 
@@ -116,7 +128,13 @@ class LinearBNN(torch.nn.Linear):
 #
 
 class SignBNN(torch.nn.Module):
+	def __init__(self, override="matt"):
+		super().__init__()
+		self.override = override
 	def forward(self, x):
-		return bnn_sign(x)
+		if   self.override == "matt":
+			return bnn_sign(x)
+		elif self.override == "pass":
+			return bnn_sign_pass(x)
 
 

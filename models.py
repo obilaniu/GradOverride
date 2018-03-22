@@ -104,40 +104,41 @@ class ModelBNN(ModelConstrained):
 		super().__init__()
 		self.a = a
 		
+		override       = self.a.override
 		inChan         =     1 if self.a.dataset == "mnist"    else  3
 		outChan        =   100 if self.a.dataset == "cifar100" else 10
 		epsilon        = 1e-4   # Some epsilon
 		alpha          = 1-0.9  # Exponential moving average factor for BN.
 		
-		self.conv1     = Conv2dBNN  (inChan, 128, (3,3), padding=1, H=1, W_LR_scale="Glorot")
+		self.conv1     = Conv2dBNN  (inChan, 128, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.bn1       = BatchNorm2d( 128, epsilon, alpha)
-		self.tanh1     = SignBNN    ()
-		self.conv2     = Conv2dBNN  ( 128,  128, (3,3), padding=1, H=1, W_LR_scale="Glorot")
+		self.tanh1     = SignBNN    (override)
+		self.conv2     = Conv2dBNN  ( 128,  128, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.maxpool2  = MaxPool2d  ((2,2), stride=(2,2))
 		self.bn2       = BatchNorm2d( 128, epsilon, alpha)
-		self.tanh2     = SignBNN    ()
+		self.tanh2     = SignBNN    (override)
 		
-		self.conv3     = Conv2dBNN  ( 128,  256, (3,3), padding=1, H=1, W_LR_scale="Glorot")
+		self.conv3     = Conv2dBNN  ( 128,  256, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.bn3       = BatchNorm2d( 256, epsilon, alpha)
-		self.tanh3     = SignBNN    ()
-		self.conv4     = Conv2dBNN  ( 256,  256, (3,3), padding=1, H=1, W_LR_scale="Glorot")
+		self.tanh3     = SignBNN    (override)
+		self.conv4     = Conv2dBNN  ( 256,  256, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.maxpool4  = MaxPool2d  ((2,2), stride=(2,2))
 		self.bn4       = BatchNorm2d( 256, epsilon, alpha)
-		self.tanh4     = SignBNN    ()
+		self.tanh4     = SignBNN    (override)
 		
-		self.conv5     = Conv2dBNN  ( 256,  512, (3,3), padding=1, H=1, W_LR_scale="Glorot")
+		self.conv5     = Conv2dBNN  ( 256,  512, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.bn5       = BatchNorm2d( 512, epsilon, alpha)
-		self.tanh5     = SignBNN    ()
-		self.conv6     = Conv2dBNN  ( 512,  512, (3,3), padding=1, H=1, W_LR_scale="Glorot")
+		self.tanh5     = SignBNN    (override)
+		self.conv6     = Conv2dBNN  ( 512,  512, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.maxpool6  = MaxPool2d  ((2,2), stride=(2,2))
 		self.bn6       = BatchNorm2d( 512, epsilon, alpha)
-		self.tanh6     = SignBNN    ()
+		self.tanh6     = SignBNN    (override)
 		
-		self.linear7   = LinearBNN  (4*4*512, 1024, H=1, W_LR_scale="Glorot")
-		self.tanh7     = SignBNN    ()
-		self.linear8   = LinearBNN  (1024, 1024, H=1, W_LR_scale="Glorot")
-		self.tanh8     = SignBNN    ()
-		self.linear9   = LinearBNN  (1024,  outChan, H=1, W_LR_scale="Glorot")
+		self.linear7   = LinearBNN  (4*4*512, 1024, H=1, W_LR_scale="Glorot", override=override)
+		self.tanh7     = SignBNN    (override)
+		self.linear8   = LinearBNN  (1024, 1024, H=1, W_LR_scale="Glorot", override=override)
+		self.tanh8     = SignBNN    (override)
+		self.linear9   = LinearBNN  (1024,  outChan, H=1, W_LR_scale="Glorot", override=override)
 	
 	
 	def forward(self, X):
