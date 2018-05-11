@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
-import pickle as pkl, pdb, nauka, os, sys, uuid
+import pickle as pkl, pdb, nauka, os, sys
 
 
 DATASETS = ["mnist", "cifar10", "cifar100", "svhn"]

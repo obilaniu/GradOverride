@@ -56,17 +56,13 @@ class Experiment(nauka.exp.Experiment):
 		else:           self.S.model = self.S.model.cpu ()
 		
 		"""Optimizer Selection"""
-		self.S.optimizer = nauka.utils.getTorchOptimizerFromAction(self.S.model.parameters(),
-		                                                           self.a.optimizer)
+		self.S.optimizer = nauka.utils.torch.optim.fromSpec(self.S.model.parameters(),
+		                                                    self.a.optimizer)
 		
 		
 		"""Epoch/Interval counters"""
 		self.S.epochNum    = 0
 		self.S.intervalNum = 0
-		
-		
-		"""Zvit Writer (TensorBoard logging)"""
-		self.S.z           = ZvitWriter(self.logDir, 0)
 		
 		
 		return self
@@ -75,7 +71,7 @@ class Experiment(nauka.exp.Experiment):
 		"""
 		Run by intervals until experiment completion.
 		"""
-		with self.S.z:
+		with ZvitWriter(self.logDir, 0) as self.z:
 			self.readyDataset(download=False)
 			while not self.isDone:
 				self.interval().snapshot().purge()
@@ -106,7 +102,7 @@ class Experiment(nauka.exp.Experiment):
 			self.onTrainLoopBegin()
 			for i, D in enumerate(self.DloaderTrain):
 				if self.a.fastdebug and i>=self.a.fastdebug: break
-				if i>0: self.S.z.step()
+				if i>0: self.z.step()
 				self.onTrainBatch(D, i)
 			self.onTrainLoopEnd()
 		
@@ -121,7 +117,7 @@ class Experiment(nauka.exp.Experiment):
 		self.onIntervalEnd()
 		self.S.epochNum    += 1
 		self.S.intervalNum += 1
-		self.S.z.step()
+		self.z.step()
 		return self
 	
 	def onTrainBatch(self, D, i):
@@ -222,10 +218,10 @@ class Experiment(nauka.exp.Experiment):
 		#
 		password = password or "Seed: {} Interval: {:d}".format(self.a.seed,
 		                                                        self.S.intervalNum,)
-		nauka.utils.seedRandomFromPBKDF2            (password, "random")
-		nauka.utils.seedNpRandomFromPBKDF2          (password, "numpy.random")
-		nauka.utils.seedTorchRandomManualFromPBKDF2 (password, "torch.random")
-		nauka.utils.seedTorchCudaManualAllFromPBKDF2(password, "torch.cuda")
+		nauka.utils.random.setstate           (password)
+		nauka.utils.numpy.random.set_state    (password)
+		nauka.utils.torch.random.manual_seed  (password)
+		nauka.utils.torch.cuda.manual_seed_all(password)
 		return self
 	
 	def readyDataset(self, download=False):
