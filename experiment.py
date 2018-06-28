@@ -28,7 +28,10 @@ class Experiment(nauka.exp.Experiment):
 		self.a.__dict__.pop("__argp__", None)
 		self.a.__dict__.pop("__argv__", None)
 		self.a.__dict__.pop("__cls__",  None)
-		super().__init__(os.path.join(self.a.workDir, self.name))
+		if self.a.workDir:
+			super().__init__(self.a.workDir)
+		else:
+			super().__init__(os.path.join(*([self.a.baseDir]+self.a.name)))
 		self.mkdirp(self.logDir)
 	
 	def fromScratch(self):

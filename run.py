@@ -17,8 +17,7 @@ class root(nauka.ap.Subcommand):
 			mtxp.add_argument("-b", "--baseDir",        action=nauka.ap.BaseDir)
 			argp.add_argument("-d", "--dataDir",        action=nauka.ap.DataDir)
 			argp.add_argument("-t", "--tmpDir",         action=nauka.ap.TmpDir)
-			argp.add_argument("-n", "--name",           default=[],           type=str,
-			    action="append",
+			argp.add_argument("-n", "--name",           action="append",
 			    help="Build a name for the experiment.")
 			argp.add_argument("-s", "--seed",           default=0x6a09e667f3bcc908, type=int,
 			    help="Seed for PRNGs. Default is 64-bit fractional expansion of sqrt(2).")
@@ -37,6 +36,9 @@ class root(nauka.ap.Subcommand):
 			argp.add_argument("--override",             default="matt",       type=str,
 			    choices=["matt", "pass"],
 			    help="Gradient override selection.")
+			argp.add_argument("--act",                  default="sign",       type=str,
+			    choices=["sign", "pact"],
+			    help="Activation function selection.")
 			argp.add_argument("--cuda",                 action=nauka.ap.CudaDevice)
 			argp.add_argument("-p", "--preset",         action=nauka.ap.Preset,
 			    choices={"fig1":  ["-n=fig1", "--opt=adam", "--bs=100"],

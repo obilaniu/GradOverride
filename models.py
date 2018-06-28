@@ -104,7 +104,9 @@ class ModelBNN(ModelConstrained):
 		super().__init__()
 		self.a = a
 		
+		actArgs        = (self.a.override,) if self.a.act == "sign" else ()
 		override       = self.a.override
+		act            = SignBNN if self.a.act == "sign" else PACT
 		inChan         =     1 if self.a.dataset == "mnist"    else  3
 		outChan        =   100 if self.a.dataset == "cifar100" else 10
 		epsilon        = 1e-4   # Some epsilon
@@ -112,32 +114,32 @@ class ModelBNN(ModelConstrained):
 		
 		self.conv1     = Conv2dBNN  (inChan, 128, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.bn1       = BatchNorm2d( 128, epsilon, alpha)
-		self.tanh1     = SignBNN    (override)
+		self.tanh1     = act        (*actArgs)
 		self.conv2     = Conv2dBNN  ( 128,  128, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.maxpool2  = MaxPool2d  ((2,2), stride=(2,2))
 		self.bn2       = BatchNorm2d( 128, epsilon, alpha)
-		self.tanh2     = SignBNN    (override)
+		self.tanh2     = act        (*actArgs)
 		
 		self.conv3     = Conv2dBNN  ( 128,  256, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.bn3       = BatchNorm2d( 256, epsilon, alpha)
-		self.tanh3     = SignBNN    (override)
+		self.tanh3     = act        (*actArgs)
 		self.conv4     = Conv2dBNN  ( 256,  256, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.maxpool4  = MaxPool2d  ((2,2), stride=(2,2))
 		self.bn4       = BatchNorm2d( 256, epsilon, alpha)
-		self.tanh4     = SignBNN    (override)
+		self.tanh4     = act        (*actArgs)
 		
 		self.conv5     = Conv2dBNN  ( 256,  512, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.bn5       = BatchNorm2d( 512, epsilon, alpha)
-		self.tanh5     = SignBNN    (override)
+		self.tanh5     = act        (*actArgs)
 		self.conv6     = Conv2dBNN  ( 512,  512, (3,3), padding=1, H=1, W_LR_scale="Glorot", override=override)
 		self.maxpool6  = MaxPool2d  ((2,2), stride=(2,2))
 		self.bn6       = BatchNorm2d( 512, epsilon, alpha)
-		self.tanh6     = SignBNN    (override)
+		self.tanh6     = act        (*actArgs)
 		
 		self.linear7   = LinearBNN  (4*4*512, 1024, H=1, W_LR_scale="Glorot", override=override)
-		self.tanh7     = SignBNN    (override)
+		self.tanh7     = act        (*actArgs)
 		self.linear8   = LinearBNN  (1024, 1024, H=1, W_LR_scale="Glorot", override=override)
-		self.tanh8     = SignBNN    (override)
+		self.tanh8     = act        (*actArgs)
 		self.linear9   = LinearBNN  (1024,  outChan, H=1, W_LR_scale="Glorot", override=override)
 	
 	

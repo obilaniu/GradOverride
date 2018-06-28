@@ -42,3 +42,28 @@ class BNNSignPass(torch.autograd.Function):
 
 bnn_sign_pass = BNNSignPass.apply
 
+
+class PACTFunction(torch.autograd.Function):
+	"""
+	Parametrized Clipping Activation Function
+	https://arxiv.org/pdf/1805.06085.pdf
+	"""
+	
+	@staticmethod
+	def forward(ctx, x, alpha):
+		ctx.save_for_backward(x, alpha)
+		return x.clamp(min=0.0).min(alpha)
+	
+	@staticmethod
+	def backward(ctx, dLdy):
+		x, alpha = ctx.saved_variables
+		
+		lt0      = x < 0
+		gta      = x > alpha
+		gi       = 1.0-lt0.float()-gta.float()
+		
+		dLdx     = dy*gi
+		dLdalpha = torch.sum(dLdy*x.ge(alpha).float())
+		return dLdx, dLdalpha
+
+pact          = PACTFunction.apply

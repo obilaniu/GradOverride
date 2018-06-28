@@ -137,4 +137,10 @@ class SignBNN(torch.nn.Module):
 		elif self.override == "pass":
 			return bnn_sign_pass(x)
 
-
+class PACT(torch.nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.alpha = torch.nn.Parameter(torch.tensor(10.0, dtype=torch.float32))
+	
+	def forward(self, x):
+		return pact(x, self.alpha)
