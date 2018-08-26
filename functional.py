@@ -62,7 +62,7 @@ class PACTFunction(torch.autograd.Function):
 		gta      = x > alpha
 		gi       = 1.0-lt0.float()-gta.float()
 		
-		dLdx     = dy*gi
+		dLdx     = dLdy*gi
 		dLdalpha = torch.sum(dLdy*x.ge(alpha).float())
 		return dLdx, dLdalpha
 
